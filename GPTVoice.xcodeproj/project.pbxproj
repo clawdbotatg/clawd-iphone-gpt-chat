@@ -1,0 +1,307 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 77;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		0265AA8D981DCEBACE47BC69 /* GPTVoiceApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = C345FC1304B596E5B192B9F6 /* GPTVoiceApp.swift */; };
+		7E8348C10DA494A85C272E0B /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5E95EDBA0593CB08FE722F80 /* ContentView.swift */; };
+		C3ADAF327C9A40D67930FB44 /* VoiceWebView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FFDA777462DE5D8C3EA06464 /* VoiceWebView.swift */; };
+		CBFDE753C76D5A77C4AD93C1 /* NativeVoiceView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3F7F394E5B8C3BBD6B26093C /* NativeVoiceView.swift */; };
+		FFB36B137B455C171FA1E816 /* RealtimeWSClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7385F4343DAAB37A7F14D337 /* RealtimeWSClient.swift */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXFileReference section */
+		3F7F394E5B8C3BBD6B26093C /* NativeVoiceView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NativeVoiceView.swift; sourceTree = "<group>"; };
+		4C0EF809F1551983AF3E8B11 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
+		5E95EDBA0593CB08FE722F80 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
+		7385F4343DAAB37A7F14D337 /* RealtimeWSClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RealtimeWSClient.swift; sourceTree = "<group>"; };
+		C345FC1304B596E5B192B9F6 /* GPTVoiceApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GPTVoiceApp.swift; sourceTree = "<group>"; };
+		FE29866BD3B834343F44DF74 /* GPTVoice.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = GPTVoice.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		FFDA777462DE5D8C3EA06464 /* VoiceWebView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VoiceWebView.swift; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXGroup section */
+		7033ACD2993FF8DDF6EA9A10 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				FE29866BD3B834343F44DF74 /* GPTVoice.app */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		BCC8C62D1FE23245CD603AF9 /* App */ = {
+			isa = PBXGroup;
+			children = (
+				5E95EDBA0593CB08FE722F80 /* ContentView.swift */,
+				C345FC1304B596E5B192B9F6 /* GPTVoiceApp.swift */,
+				4C0EF809F1551983AF3E8B11 /* Info.plist */,
+				3F7F394E5B8C3BBD6B26093C /* NativeVoiceView.swift */,
+				7385F4343DAAB37A7F14D337 /* RealtimeWSClient.swift */,
+				FFDA777462DE5D8C3EA06464 /* VoiceWebView.swift */,
+			);
+			path = App;
+			sourceTree = "<group>";
+		};
+		F4763C3ECFDFD49BBAF20DA4 = {
+			isa = PBXGroup;
+			children = (
+				BCC8C62D1FE23245CD603AF9 /* App */,
+				7033ACD2993FF8DDF6EA9A10 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		4CD1A64FB1307CCB4A086B80 /* GPTVoice */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = B0F1A76406E1E309D5757413 /* Build configuration list for PBXNativeTarget "GPTVoice" */;
+			buildPhases = (
+				C045036D3C673528EA440607 /* Sources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = GPTVoice;
+			packageProductDependencies = (
+			);
+			productName = GPTVoice;
+			productReference = FE29866BD3B834343F44DF74 /* GPTVoice.app */;
+			productType = "com.apple.product-type.application";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		ABC92916FA26E0F15086B7AB /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = YES;
+				LastUpgradeCheck = 1430;
+				TargetAttributes = {
+					4CD1A64FB1307CCB4A086B80 = {
+						ProvisioningStyle = Automatic;
+					};
+				};
+			};
+			buildConfigurationList = B30837C7CB9E656A9CF1CDDA /* Build configuration list for PBXProject "GPTVoice" */;
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				Base,
+				en,
+			);
+			mainGroup = F4763C3ECFDFD49BBAF20DA4;
+			minimizedProjectReferenceProxies = 1;
+			preferredProjectObjectVersion = 77;
+			productRefGroup = 7033ACD2993FF8DDF6EA9A10 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				4CD1A64FB1307CCB4A086B80 /* GPTVoice */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXSourcesBuildPhase section */
+		C045036D3C673528EA440607 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				7E8348C10DA494A85C272E0B /* ContentView.swift in Sources */,
+				0265AA8D981DCEBACE47BC69 /* GPTVoiceApp.swift in Sources */,
+				CBFDE753C76D5A77C4AD93C1 /* NativeVoiceView.swift in Sources */,
+				FFB36B137B455C171FA1E816 /* RealtimeWSClient.swift in Sources */,
+				C3ADAF327C9A40D67930FB44 /* VoiceWebView.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin XCBuildConfiguration section */
+		117A7B599EFA3880971E0F30 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				CODE_SIGN_STYLE = Automatic;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = App/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.clawdbotatg.gptvoice;
+				SDKROOT = iphoneos;
+				SWIFT_VERSION = 5.9;
+				TARGETED_DEVICE_FAMILY = 1;
+			};
+			name = Debug;
+		};
+		1A39497AF16A1586C1EAA40F /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				CODE_SIGN_STYLE = Automatic;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = App/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.clawdbotatg.gptvoice;
+				SDKROOT = iphoneos;
+				SWIFT_VERSION = 5.9;
+				TARGETED_DEVICE_FAMILY = 1;
+			};
+			name = Release;
+		};
+		F03498C8BC561CE65787F6C8 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				SWIFT_VERSION = 5.0;
+			};
+			name = Release;
+		};
+		F40674AEE509F8B085BFD6B0 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"$(inherited)",
+					"DEBUG=1",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 5.0;
+			};
+			name = Debug;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		B0F1A76406E1E309D5757413 /* Build configuration list for PBXNativeTarget "GPTVoice" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				117A7B599EFA3880971E0F30 /* Debug */,
+				1A39497AF16A1586C1EAA40F /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		B30837C7CB9E656A9CF1CDDA /* Build configuration list for PBXProject "GPTVoice" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				F40674AEE509F8B085BFD6B0 /* Debug */,
+				F03498C8BC561CE65787F6C8 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = ABC92916FA26E0F15086B7AB /* Project object */;
+}

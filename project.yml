@@ -1,0 +1,33 @@
+# xcodegen spec — `xcodegen generate` rebuilds GPTVoice.xcodeproj from this.
+# The generated project is committed too, so plain Xcode users can just open it.
+name: GPTVoice
+options:
+  bundleIdPrefix: com.clawdbotatg
+  deploymentTarget:
+    iOS: "17.0"
+targets:
+  GPTVoice:
+    type: application
+    platform: iOS
+    sources: [App]
+    info:
+      path: App/Info.plist
+      properties:
+        CFBundleDisplayName: gpt-voice
+        NSMicrophoneUsageDescription: >-
+          Talking to the voice assistant needs the microphone.
+        # Demo-only: the Mac token server uses a self-signed LAN cert.
+        NSAppTransportSecurity:
+          NSAllowsArbitraryLoads: true
+        UILaunchScreen: {}
+        UISupportedInterfaceOrientations:
+          - UIInterfaceOrientationPortrait
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.clawdbotatg.gptvoice
+        TARGETED_DEVICE_FAMILY: "1"
+        CODE_SIGN_STYLE: Automatic
+        # Set your team in Xcode (Signing & Capabilities) or here:
+        # DEVELOPMENT_TEAM: XXXXXXXXXX
+        SWIFT_VERSION: "5.9"
+        GENERATE_INFOPLIST_FILE: NO

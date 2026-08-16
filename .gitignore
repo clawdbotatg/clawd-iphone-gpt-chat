@@ -1,0 +1,6 @@
+xcuserdata/
+*.xcuserstate
+DerivedData/
+.DS_Store
+server/.cert/
+server/.env

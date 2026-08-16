@@ -1,0 +1,283 @@
+<title>gpt-realtime dashboard</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<style>
+  :root { --bg:#0e1116; --panel:#161b22; --line:#2d333b; --fg:#e6e8eb; --dim:#8b949e;
+          --accent:#4ade80; --bad:#f87171; --warn:#fbbf24; }
+  * { box-sizing:border-box; }
+  body { background:var(--bg); color:var(--fg); font:15px/1.5 -apple-system,system-ui,sans-serif;
+         max-width:920px; margin:24px auto; padding:0 16px; }
+  h1 { font-size:20px; margin:0 0 4px; }
+  .sub { color:var(--dim); font-size:13px; margin-bottom:16px; }
+  .grid { display:grid; grid-template-columns:340px 1fr; gap:16px; }
+  @media (max-width:760px) { .grid { grid-template-columns:1fr; } }
+  .panel { background:var(--panel); border:1px solid var(--line); border-radius:12px; padding:14px; }
+  .panel h2 { font-size:12px; text-transform:uppercase; letter-spacing:.08em; color:var(--dim); margin:0 0 10px; }
+  label { display:block; font-size:12px; color:var(--dim); margin:10px 0 3px; }
+  label:first-of-type { margin-top:0; }
+  select, textarea, input[type=range] { width:100%; font:inherit; color:var(--fg);
+    background:#0e1116; border:1px solid var(--line); border-radius:8px; padding:7px 9px; }
+  textarea { min-height:84px; resize:vertical; font-size:13px; }
+  .hint { font-size:11.5px; color:var(--dim); margin-top:2px; }
+  .tools label { display:flex; align-items:center; gap:8px; margin:6px 0; font-size:14px; color:var(--fg); cursor:pointer; }
+  .tools input { width:auto; }
+  button { font:inherit; padding:10px 22px; border-radius:10px; border:1px solid var(--line);
+           background:#1c2128; color:var(--fg); cursor:pointer; }
+  button.live { border-color:var(--accent); color:var(--accent); }
+  button.apply { border-color:var(--warn); color:var(--warn); display:none; margin-left:8px; }
+  #status { color:var(--dim); margin:12px 0; min-height:1.4em; }
+  #status.err { color:var(--bad); white-space:pre-wrap; }
+  #log { background:#0e1116; border:1px solid var(--line); border-radius:10px; padding:12px;
+         height:380px; overflow-y:auto; font-family:ui-monospace,monospace; font-size:12px;
+         white-space:pre-wrap; }
+  .u { color:#79c0ff; } .a { color:var(--accent); } .t { color:#d2a8ff; } .e { color:var(--dim); }
+  .row { display:flex; align-items:center; gap:10px; }
+  .row output { font-size:12px; color:var(--dim); min-width:3em; text-align:right; }
+</style>
+
+<h1>🎙️ gpt-realtime dashboard</h1>
+<div class="sub">Pick a config, hit Start, talk. Change anything mid-session → <b style="color:var(--warn)">apply &amp; reconnect</b>.
+Pause mid-thought — semantic VAD waits. Interrupt it — it stops. Ask for a coin flip / the time / ETH price — tool calls.</div>
+
+<div class="grid">
+  <div>
+    <div class="panel">
+      <h2>Session</h2>
+      <label>Model</label>
+      <select id="model">
+        <option value="gpt-realtime">gpt-realtime — full (~$0.06–0.11/min)</option>
+        <option value="gpt-realtime-mini">gpt-realtime-mini — cheap (~$0.02–0.05/min)</option>
+        <option value="gpt-realtime-2.1">gpt-realtime-2.1 — pinned full</option>
+      </select>
+      <label>Voice</label>
+      <select id="voice">
+        <option value="marin">marin (newest)</option>
+        <option value="cedar">cedar (newest)</option>
+        <option value="alloy">alloy</option>
+        <option value="echo">echo</option>
+        <option value="sage">sage</option>
+        <option value="shimmer">shimmer</option>
+        <option value="verse">verse</option>
+      </select>
+      <label>Turn detection</label>
+      <select id="vad">
+        <option value="semantic_vad">semantic VAD — understands if you sound done</option>
+        <option value="server_vad">server VAD — plain silence detection</option>
+      </select>
+      <label>Eagerness <span class="hint">(semantic only — how fast it jumps in)</span></label>
+      <select id="eagerness">
+        <option value="low">low — lets you trail off and think</option>
+        <option value="auto" selected>auto</option>
+        <option value="medium">medium</option>
+        <option value="high">high — jumps in fast</option>
+      </select>
+      <label>Speech speed</label>
+      <div class="row"><input type="range" id="speed" min="0.25" max="1.5" step="0.05" value="1"><output id="speedout">1.0×</output></div>
+    </div>
+
+    <div class="panel" style="margin-top:16px">
+      <h2>Persona</h2>
+      <select id="preset">
+        <option value="">— preset —</option>
+        <option value="You are a friendly, concise voice assistant for a demo. Keep answers short and conversational.">Concise assistant</option>
+        <option value="You are a grizzled old pirate captain. Stay in character, keep replies short and salty, and work nautical slang into everything.">Pirate captain</option>
+        <option value="You are a sarcastic robot who finds humans amusing. Deadpan delivery, short replies, occasional exasperated sighs.">Sarcastic robot</option>
+        <option value="You are a patient Spanish tutor. Speak mostly in simple Spanish, briefly translating tricky words to English. Gently correct the user's Spanish.">Spanish tutor</option>
+        <option value="You are an enthusiastic sports commentator narrating the conversation itself as if it were a live match. High energy, short bursts.">Sports commentator</option>
+        <option value="You are a calm meditation guide. Speak slowly, softly, in short soothing phrases, with long peaceful pauses.">Meditation guide</option>
+      </select>
+      <label>Instructions (editable)</label>
+      <textarea id="instructions">You are a friendly, concise voice assistant for a demo. Keep answers short and conversational.</textarea>
+    </div>
+
+    <div class="panel tools" style="margin-top:16px">
+      <h2>Tools</h2>
+      <label><input type="checkbox" data-tool="flip_coin" checked> 🪙 flip_coin</label>
+      <label><input type="checkbox" data-tool="get_time" checked> 🕐 get_time (your clock)</label>
+      <label><input type="checkbox" data-tool="eth_price" checked> ⟠ eth_price (CoinGecko, live)</label>
+    </div>
+  </div>
+
+  <div>
+    <div class="panel">
+      <h2>Live</h2>
+      <div>
+        <button id="btn">Start</button><button id="applyBtn" class="apply">⟳ apply &amp; reconnect</button>
+      </div>
+      <div id="status">idle</div>
+      <div id="log"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+const $ = id => document.getElementById(id);
+const btn = $('btn'), applyBtn = $('applyBtn'), statusEl = $('status'), logEl = $('log');
+let pc = null, dc = null, mic = null;
+
+// ---- controls -------------------------------------------------------------
+const CTRL_IDS = ['model', 'voice', 'vad', 'eagerness', 'speed', 'instructions'];
+
+function cfg() {
+  return {
+    model: $('model').value,
+    voice: $('voice').value,
+    vad: $('vad').value,
+    eagerness: $('eagerness').value,
+    speed: parseFloat($('speed').value),
+    instructions: $('instructions').value,
+    tools: [...document.querySelectorAll('[data-tool]:checked')].map(el => el.dataset.tool),
+  };
+}
+
+function saveControls() { localStorage.setItem('rt_cfg', JSON.stringify(cfg())); }
+function restoreControls() {
+  try {
+    const c = JSON.parse(localStorage.getItem('rt_cfg') || 'null');
+    if (!c) return;
+    for (const k of ['model', 'voice', 'vad', 'eagerness', 'instructions'])
+      if (c[k] != null) $(k).value = c[k];
+    if (c.speed) $('speed').value = c.speed;
+    document.querySelectorAll('[data-tool]').forEach(el => el.checked = (c.tools || []).includes(el.dataset.tool));
+  } catch {}
+  syncControlState();
+}
+
+function syncControlState() {
+  $('eagerness').disabled = $('vad').value !== 'semantic_vad';
+  $('speedout').textContent = parseFloat($('speed').value).toFixed(2).replace(/0$/, '') + '×';
+}
+
+function onControlChange() {
+  syncControlState();
+  saveControls();
+  if (pc) applyBtn.style.display = 'inline-block'; // live session is now stale
+}
+for (const id of CTRL_IDS) $(id).addEventListener('input', onControlChange);
+document.querySelectorAll('[data-tool]').forEach(el => el.addEventListener('change', onControlChange));
+$('preset').addEventListener('change', e => {
+  if (e.target.value) { $('instructions').value = e.target.value; onControlChange(); }
+});
+restoreControls();
+
+// voice preview: picking a voice plays a short TTS sample of it
+const previewEl = new Audio();
+$('voice').addEventListener('change', async e => {
+  try {
+    previewEl.pause();
+    const r = await fetch('/speak', { method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ voice: e.target.value }) });
+    if (!r.ok) { log('e', 'voice preview failed: ' + (await r.text()).slice(0, 200)); return; }
+    previewEl.src = URL.createObjectURL(await r.blob());
+    previewEl.play();
+  } catch (err) { log('e', 'voice preview failed: ' + err); }
+});
+
+// ---- tool implementations (defs live server-side in serve.py) -------------
+const TOOL_IMPLS = {
+  flip_coin: async () => ({ result: Math.random() < 0.5 ? 'heads' : 'tails' }),
+  get_time: async () => ({ time: new Date().toString() }),
+  eth_price: async () => {
+    const r = await fetch('https://api.coingecko.com/api/v3/simple/price?ids=ethereum&vs_currencies=usd');
+    const j = await r.json();
+    return { eth_usd: j.ethereum.usd };
+  },
+};
+
+// ---- session --------------------------------------------------------------
+function log(cls, text) {
+  const d = document.createElement('div');
+  d.className = cls;
+  d.textContent = text;
+  logEl.appendChild(d);
+  logEl.scrollTop = logEl.scrollHeight;
+}
+function setStatus(t, err) { statusEl.textContent = t; statusEl.className = err ? 'err' : ''; }
+
+async function start() {
+  const c = cfg();
+  setStatus('minting session…');
+  const tok = await fetch('/token', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(c),
+  }).then(r => r.json());
+  const secret = tok?.value; // observed 2026-08-16: client_secrets returns top-level {value, expires_at, session}
+  if (!secret) { setStatus('token error: ' + JSON.stringify(tok).slice(0, 500), true); return; }
+
+  setStatus('mic…');
+  mic = await navigator.mediaDevices.getUserMedia({ audio: true });
+
+  pc = new RTCPeerConnection();
+  const audioEl = new Audio();
+  audioEl.autoplay = true;
+  pc.ontrack = e => { audioEl.srcObject = e.streams[0]; };
+  pc.addTrack(mic.getTracks()[0], mic);
+
+  dc = pc.createDataChannel('oai-events');
+  dc.onmessage = e => handleEvent(JSON.parse(e.data));
+
+  const offer = await pc.createOffer();
+  await pc.setLocalDescription(offer);
+  setStatus('connecting…');
+  const resp = await fetch('https://api.openai.com/v1/realtime/calls', {
+    method: 'POST',
+    body: offer.sdp,
+    headers: { Authorization: 'Bearer ' + secret, 'Content-Type': 'application/sdp' },
+  });
+  if (!resp.ok) { setStatus('SDP exchange failed: ' + resp.status + ' ' + (await resp.text()).slice(0, 300), true); stop(); return; }
+  await pc.setRemoteDescription({ type: 'answer', sdp: await resp.text() });
+
+  log('e', '— session: ' + c.model + ' · ' + c.voice + ' · ' + c.vad +
+    (c.vad === 'semantic_vad' ? '/' + c.eagerness : '') +
+    (c.speed !== 1 ? ' · ' + c.speed + '×' : '') +
+    ' · tools: ' + (c.tools.join(', ') || 'none') + ' —');
+  setStatus('🟢 live — talk to it');
+  btn.textContent = 'Stop';
+  btn.className = 'live';
+  applyBtn.style.display = 'none';
+}
+
+async function handleEvent(ev) {
+  switch (ev.type) {
+    case 'conversation.item.input_audio_transcription.completed':
+      log('u', 'you: ' + ev.transcript); break;
+    case 'response.output_audio_transcript.done':
+      log('a', 'ai:  ' + ev.transcript); break;
+    case 'response.function_call_arguments.done': {
+      log('t', 'tool call: ' + ev.name + '(' + ev.arguments + ')');
+      let output;
+      try {
+        const impl = TOOL_IMPLS[ev.name];
+        output = JSON.stringify(impl ? await impl(JSON.parse(ev.arguments || '{}')) : { error: 'unknown tool' });
+      } catch (e) {
+        output = JSON.stringify({ error: String(e) });
+      }
+      if (!dc || dc.readyState !== 'open') break; // session ended while tool ran
+      dc.send(JSON.stringify({ type: 'conversation.item.create', item: {
+        type: 'function_call_output', call_id: ev.call_id, output } }));
+      dc.send(JSON.stringify({ type: 'response.create' }));
+      log('t', 'tool result: ' + output);
+      break;
+    }
+    case 'input_audio_buffer.speech_started': setStatus('🟢 live — listening…'); break;
+    case 'response.created': setStatus('🟢 live — thinking/speaking…'); break;
+    case 'response.done': setStatus('🟢 live — talk to it'); break;
+    case 'error': log('e', 'error: ' + JSON.stringify(ev.error)); break;
+  }
+}
+
+function stop() {
+  if (mic) mic.getTracks().forEach(t => t.stop());
+  if (dc) dc.close();
+  if (pc) pc.close();
+  pc = dc = mic = null;
+  btn.textContent = 'Start';
+  btn.className = '';
+  applyBtn.style.display = 'none';
+  setStatus('idle');
+}
+
+btn.onclick = () => (pc ? stop() : start().catch(e => { setStatus(String(e), true); stop(); }));
+applyBtn.onclick = () => { stop(); start().catch(e => { setStatus(String(e), true); stop(); }); };
+</script>
