@@ -16,6 +16,11 @@ targets:
         CFBundleDisplayName: gpt-voice
         NSMicrophoneUsageDescription: >-
           Talking to the voice assistant needs the microphone.
+        # Mode B's URLSession talks straight to the Mac's LAN IP — that needs
+        # the iOS Local Network permission (WKWebView's networking process is
+        # exempt, which is why mode A works without it).
+        NSLocalNetworkUsageDescription: >-
+          Connects to the token server running on your Mac over the local network.
         # Demo-only: the Mac token server uses a self-signed LAN cert.
         NSAppTransportSecurity:
           NSAllowsArbitraryLoads: true
