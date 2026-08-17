@@ -33,6 +33,8 @@ final class RealtimeWSClient: NSObject, ObservableObject, URLSessionDelegate {
     private var micReportAt = Date()
     private var seenEventTypes = Set<String>()
     private var heartbeat: Timer?
+    private var tapCallbacks = 0
+    private var vpEnabled = true
 
     private let engine = AVAudioEngine()
     private let player = AVAudioPlayerNode()
@@ -209,20 +211,39 @@ final class RealtimeWSClient: NSObject, ObservableObject, URLSessionDelegate {
     // MARK: audio
 
     private func startAudio() throws {
+        try startAudio(vp: true)
+        // The AVAudioEngine voice-processing unit sometimes starts but never
+        // delivers a single input callback (observed on this iPhone 17 Pro:
+        // engine runs, tap dead). If that happens, rebuild the whole engine
+        // without VP — AVAudioSession .voiceChat mode still provides the
+        // OS-level echo cancellation the demo is testing.
+        DispatchQueue.main.asyncAfter(deadline: .now() + 4.0) { [weak self] in
+            guard let self, self.state != .idle, self.tapCallbacks == 0, self.vpEnabled else { return }
+            self.remoteLog("no tap callbacks after 4s with VP on — rebuilding engine without VP")
+            self.engine.inputNode.removeTap(onBus: 0)
+            self.player.stop()
+            self.engine.stop()
+            self.engine.reset()
+            do { try self.startAudio(vp: false) }
+            catch { self.post("sys", "fallback audio engine failed: \(error.localizedDescription)") }
+        }
+    }
+
+    private func startAudio(vp: Bool) throws {
         AudioSessionConfigurator.apply()
         let input = engine.inputNode
-        // FaceTime's echo canceller — must be set before the engine starts,
-        // and per Apple's docs on BOTH IO nodes of the engine, not just input
-        // (input-only is a documented source of silent capture).
-        try input.setVoiceProcessingEnabled(true)
-        try engine.outputNode.setVoiceProcessingEnabled(true)
+        // FaceTime's echo canceller — set before the engine starts, on BOTH
+        // IO nodes per Apple's docs.
+        try input.setVoiceProcessingEnabled(vp)
+        try engine.outputNode.setVoiceProcessingEnabled(vp)
+        vpEnabled = vp
 
         let route = AVAudioSession.sharedInstance().currentRoute
         let ins = route.inputs.map { "\($0.portType.rawValue):\($0.portName)" }.joined(separator: ",")
         let outs = route.outputs.map { "\($0.portType.rawValue):\($0.portName)" }.joined(separator: ",")
         remoteLog("route: in [\(ins)] out [\(outs)]")
 
-        engine.attach(player)
+        if player.engine == nil { engine.attach(player) }
         engine.connect(player, to: engine.mainMixerNode, format: playFormat)
 
         let micFormat = input.outputFormat(forBus: 0)
@@ -233,7 +254,7 @@ final class RealtimeWSClient: NSObject, ObservableObject, URLSessionDelegate {
         engine.prepare()
         try engine.start()
         player.play()
-        remoteLog("engine started, mic format \(micFormat.sampleRate)Hz x\(micFormat.channelCount)")
+        remoteLog("engine started vp=\(vp), mic format \(micFormat.sampleRate)Hz x\(micFormat.channelCount)")
 
         // Heartbeat even when the tap goes silent — pumpMic can't report a
         // tap that never fires.
@@ -241,14 +262,15 @@ final class RealtimeWSClient: NSObject, ObservableObject, URLSessionDelegate {
             self.heartbeat?.invalidate()
             self.heartbeat = Timer.scheduledTimer(withTimeInterval: 2.0, repeats: true) { [weak self] _ in
                 guard let self else { return }
-                self.remoteLog(String(format: "hb: state %@, mic %d frames since last, peak %.3f",
-                                      self.state.rawValue, self.micFrames, self.micPeak))
+                self.remoteLog(String(format: "hb: state %@, vp %d, taps %d, mic %d frames since last, peak %.3f",
+                                      self.state.rawValue, self.vpEnabled ? 1 : 0, self.tapCallbacks, self.micFrames, self.micPeak))
                 self.micFrames = 0; self.micPeak = 0
             }
         }
     }
 
     private func pumpMic(_ buffer: AVAudioPCMBuffer) {
+        tapCallbacks += 1
         guard let converter = micConverter, ws != nil else { return }
         let ratio = sendFormat.sampleRate / buffer.format.sampleRate
         let capacity = AVAudioFrameCount(Double(buffer.frameLength) * ratio) + 32
