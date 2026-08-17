@@ -25,6 +25,8 @@
 		<key>NSAllowsArbitraryLoads</key>
 		<true/>
 	</dict>
+	<key>NSLocalNetworkUsageDescription</key>
+	<string>Connects to the token server running on your Mac over the local network.</string>
 	<key>NSMicrophoneUsageDescription</key>
 	<string>Talking to the voice assistant needs the microphone.</string>
 	<key>UILaunchScreen</key>
