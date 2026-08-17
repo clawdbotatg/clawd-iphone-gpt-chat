@@ -1,7 +1,9 @@
 import SwiftUI
 
 struct ContentView: View {
-    @AppStorage("serverURL") private var serverURL = "https://192.168.68.61:8444"
+    // No baked-in default — a stale IP from the build machine reads like the
+    // app is broken. Start stays disabled until a URL is typed.
+    @AppStorage("serverURL") private var serverURL = ""
     @AppStorage("voiceMode") private var voiceMode = "web"
     @State private var started = false
 
