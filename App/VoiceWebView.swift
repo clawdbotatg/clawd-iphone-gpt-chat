@@ -7,7 +7,7 @@ import WebKit
 struct VoiceWebView: UIViewRepresentable {
     let url: URL
 
-    func makeCoordinator() -> Coordinator { Coordinator(host: url.host ?? "") }
+    func makeCoordinator() -> Coordinator { Coordinator(url: url) }
 
     func makeUIView(context: Context) -> WKWebView {
         let config = WKWebViewConfiguration()
@@ -26,8 +26,29 @@ struct VoiceWebView: UIViewRepresentable {
     }
 
     final class Coordinator: NSObject, WKNavigationDelegate, WKUIDelegate {
-        let host: String
-        init(host: String) { self.host = host }
+        let url: URL
+        var host: String { url.host ?? "" }
+        init(url: URL) { self.url = url }
+
+        // The first load can die while iOS's Local Network permission prompt
+        // is still on screen (the request fails, THEN the user taps Allow).
+        // Retry until the page comes up instead of sitting on a blank screen.
+        func webView(_ webView: WKWebView,
+                     didFailProvisionalNavigation navigation: WKNavigation!,
+                     withError error: Error) {
+            retry(webView)
+        }
+        func webView(_ webView: WKWebView, didFail navigation: WKNavigation!,
+                     withError error: Error) {
+            retry(webView)
+        }
+        private func retry(_ webView: WKWebView) {
+            let target = url
+            DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) { [weak webView] in
+                guard let webView, webView.url == nil || webView.url?.host == target.host else { return }
+                webView.load(URLRequest(url: target))
+            }
+        }
 
         // serve.py uses a self-signed cert for LAN HTTPS (getUserMedia needs a
         // secure origin). WKWebView has no "accept the warning" UI, so trust

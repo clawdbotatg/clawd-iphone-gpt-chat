@@ -1,9 +1,9 @@
 import SwiftUI
 
 struct ContentView: View {
-    // No baked-in default — a stale IP from the build machine reads like the
-    // app is broken. Start stays disabled until a URL is typed.
-    @AppStorage("serverURL") private var serverURL = ""
+    // Prefilled with the token-server Mac's LAN IP at build time so the phone
+    // needs zero typing. Editable on the setup screen if the IP moves.
+    @AppStorage("serverURL") private var serverURL = "https://192.168.68.60:8444"
     @AppStorage("voiceMode") private var voiceMode = "web"
     @State private var started = false
 
