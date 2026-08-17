@@ -3,7 +3,17 @@ import SwiftUI
 struct ContentView: View {
     // Prefilled with the token-server Mac's LAN IP at build time so the phone
     // needs zero typing. Editable on the setup screen if the IP moves.
-    @AppStorage("serverURL") private var serverURL = "https://192.168.68.60:8444"
+    // A leftover stored EMPTY value shadows the @AppStorage default (defaults
+    // only apply when the key is absent), so seed it explicitly in init.
+    private static let defaultServerURL = "https://192.168.68.60:8444"
+    @AppStorage("serverURL") private var serverURL = ContentView.defaultServerURL
+
+    init() {
+        let stored = UserDefaults.standard.string(forKey: "serverURL")
+        if stored == nil || stored?.trimmingCharacters(in: .whitespaces).isEmpty == true {
+            UserDefaults.standard.set(Self.defaultServerURL, forKey: "serverURL")
+        }
+    }
     @AppStorage("voiceMode") private var voiceMode = "web"
     @State private var started = false
 
