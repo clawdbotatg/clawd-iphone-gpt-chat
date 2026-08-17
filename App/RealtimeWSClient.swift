@@ -211,22 +211,13 @@ final class RealtimeWSClient: NSObject, ObservableObject, URLSessionDelegate {
     // MARK: audio
 
     private func startAudio() throws {
-        try startAudio(vp: true)
-        // The AVAudioEngine voice-processing unit sometimes starts but never
-        // delivers a single input callback (observed on this iPhone 17 Pro:
-        // engine runs, tap dead). If that happens, rebuild the whole engine
-        // without VP — AVAudioSession .voiceChat mode still provides the
-        // OS-level echo cancellation the demo is testing.
-        DispatchQueue.main.asyncAfter(deadline: .now() + 4.0) { [weak self] in
-            guard let self, self.state != .idle, self.tapCallbacks == 0, self.vpEnabled else { return }
-            self.remoteLog("no tap callbacks after 4s with VP on — rebuilding engine without VP")
-            self.engine.inputNode.removeTap(onBus: 0)
-            self.player.stop()
-            self.engine.stop()
-            self.engine.reset()
-            do { try self.startAudio(vp: false) }
-            catch { self.post("sys", "fallback audio engine failed: \(error.localizedDescription)") }
-        }
+        // NO AVAudioEngine-level voice processing: on this iPhone 17 Pro the
+        // VP unit either never delivers an input callback (engine runs, tap
+        // dead, mic silent) or crashes engine setup with an NSException Swift
+        // cannot catch. The echo cancellation under test comes from the
+        // AVAudioSession .voiceChat mode (the same OS AEC WebKit rides), so
+        // the plain engine is both stable and still the right experiment.
+        try startAudio(vp: false)
     }
 
     private func startAudio(vp: Bool) throws {
