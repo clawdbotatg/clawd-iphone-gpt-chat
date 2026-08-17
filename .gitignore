@@ -4,3 +4,4 @@ DerivedData/
 .DS_Store
 server/.cert/
 server/.env
+server/device.log
