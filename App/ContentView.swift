@@ -16,6 +16,7 @@ struct ContentView: View {
     }
     @AppStorage("voiceMode") private var voiceMode = "web"
     @State private var started = false
+    @State private var autoStarted = false
 
     private var url: URL? { URL(string: serverURL.trimmingCharacters(in: .whitespaces)) }
 
@@ -40,6 +41,14 @@ struct ContentView: View {
             .onDisappear { UIApplication.shared.isIdleTimerDisabled = false }
         } else {
             setupForm
+                // Zero-tap demo: the URL is baked in, so go straight to the
+                // session on launch. The ✕ returns here to change mode/URL.
+                .onAppear {
+                    if !autoStarted, url != nil {
+                        autoStarted = true
+                        started = true
+                    }
+                }
         }
     }
 

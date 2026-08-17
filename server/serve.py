@@ -179,6 +179,22 @@ class Handler(BaseHTTPRequestHandler):
                 cfg = {}
             code, data = mint_client_secret(cfg if isinstance(cfg, dict) else {})
             self._send(code, data)
+        elif self.path == "/log":
+            # Device-side diagnostics: the iPhone app POSTs its feed/debug
+            # lines here so the phone never has to be read by a human.
+            try:
+                n = int(self.headers.get("Content-Length") or 0)
+                msg = json.loads(self.rfile.read(n)).get("msg", "")
+            except Exception:
+                msg = "(unparseable)"
+            line = f"[device {self.address_string()}] {msg}"
+            print(line, flush=True)
+            try:
+                with open(HERE / "device.log", "a") as f:
+                    f.write(line + "\n")
+            except OSError:
+                pass
+            self._send(200, {"ok": True})
         elif self.path == "/speak":
             try:
                 n = int(self.headers.get("Content-Length") or 0)

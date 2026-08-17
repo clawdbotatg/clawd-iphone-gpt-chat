@@ -26,6 +26,13 @@ final class RealtimeWSClient: NSObject, ObservableObject, URLSessionDelegate {
     private var urlSession: URLSession!
     private var ws: URLSessionWebSocketTask?
     private var serverHost = ""
+    private var serverURL: URL?
+    // Mic health counters, reported to the Mac once a second.
+    private var micFrames = 0
+    private var micPeak: Float = 0
+    private var micReportAt = Date()
+    private var seenEventTypes = Set<String>()
+    private var heartbeat: Timer?
 
     private let engine = AVAudioEngine()
     private let player = AVAudioPlayerNode()
@@ -40,19 +47,37 @@ final class RealtimeWSClient: NSObject, ObservableObject, URLSessionDelegate {
 
     // MARK: session lifecycle
 
+    // Synchronous re-entry guard: `state` is published on the main queue, so
+    // two immediate onAppear calls both still read .idle and double-start.
+    private var startedOnce = false
+
     func start(serverURL: URL) {
-        guard state == .idle else { return }
+        guard !startedOnce else { return }
+        startedOnce = true
         serverHost = serverURL.host ?? ""
+        self.serverURL = serverURL
         urlSession = URLSession(configuration: .default, delegate: self, delegateQueue: nil)
         setState(.minting)
-        mintSecret(serverURL: serverURL) { [weak self] result in
+        remoteLog("start: native mode, server \(serverURL.absoluteString)")
+        // Ask for the mic explicitly — without permission the engine runs but
+        // captures silence, which looks exactly like "listening, nothing happens".
+        AVAudioSession.sharedInstance().requestRecordPermission { [weak self] granted in
             guard let self else { return }
-            switch result {
-            case .failure(let err):
-                self.post("sys", "token error: \(err.localizedDescription)")
+            self.remoteLog("mic permission: \(granted ? "granted" : "DENIED")")
+            guard granted else {
+                self.post("sys", "microphone permission denied — enable in Settings > Privacy > Microphone")
                 self.stop()
-            case .success(let secret):
-                self.connect(secret: secret)
+                return
+            }
+            self.mintSecret(serverURL: serverURL) { result in
+                switch result {
+                case .failure(let err):
+                    self.post("sys", "token error: \(err.localizedDescription)")
+                    self.stop()
+                case .success(let secret):
+                    self.remoteLog("token minted ok")
+                    self.connect(secret: secret)
+                }
             }
         }
     }
@@ -66,6 +91,7 @@ final class RealtimeWSClient: NSObject, ObservableObject, URLSessionDelegate {
             engine.stop()
         }
         assistantSpeaking = false
+        DispatchQueue.main.async { self.heartbeat?.invalidate(); self.heartbeat = nil }
         setState(.idle)
     }
 
@@ -148,6 +174,9 @@ final class RealtimeWSClient: NSObject, ObservableObject, URLSessionDelegate {
     }
 
     private func handleEvent(_ ev: [String: Any]) {
+        if let t = ev["type"] as? String, seenEventTypes.insert(t).inserted {
+            remoteLog("first event: \(t)")
+        }
         switch ev["type"] as? String {
         case "response.output_audio.delta":
             if let b64 = ev["delta"] as? String, let pcm = Data(base64Encoded: b64) {
@@ -182,8 +211,16 @@ final class RealtimeWSClient: NSObject, ObservableObject, URLSessionDelegate {
     private func startAudio() throws {
         AudioSessionConfigurator.apply()
         let input = engine.inputNode
-        // FaceTime's echo canceller — must be set before the engine starts.
+        // FaceTime's echo canceller — must be set before the engine starts,
+        // and per Apple's docs on BOTH IO nodes of the engine, not just input
+        // (input-only is a documented source of silent capture).
         try input.setVoiceProcessingEnabled(true)
+        try engine.outputNode.setVoiceProcessingEnabled(true)
+
+        let route = AVAudioSession.sharedInstance().currentRoute
+        let ins = route.inputs.map { "\($0.portType.rawValue):\($0.portName)" }.joined(separator: ",")
+        let outs = route.outputs.map { "\($0.portType.rawValue):\($0.portName)" }.joined(separator: ",")
+        remoteLog("route: in [\(ins)] out [\(outs)]")
 
         engine.attach(player)
         engine.connect(player, to: engine.mainMixerNode, format: playFormat)
@@ -196,6 +233,19 @@ final class RealtimeWSClient: NSObject, ObservableObject, URLSessionDelegate {
         engine.prepare()
         try engine.start()
         player.play()
+        remoteLog("engine started, mic format \(micFormat.sampleRate)Hz x\(micFormat.channelCount)")
+
+        // Heartbeat even when the tap goes silent — pumpMic can't report a
+        // tap that never fires.
+        DispatchQueue.main.async {
+            self.heartbeat?.invalidate()
+            self.heartbeat = Timer.scheduledTimer(withTimeInterval: 2.0, repeats: true) { [weak self] _ in
+                guard let self else { return }
+                self.remoteLog(String(format: "hb: state %@, mic %d frames since last, peak %.3f",
+                                      self.state.rawValue, self.micFrames, self.micPeak))
+                self.micFrames = 0; self.micPeak = 0
+            }
+        }
     }
 
     private func pumpMic(_ buffer: AVAudioPCMBuffer) {
@@ -214,6 +264,13 @@ final class RealtimeWSClient: NSObject, ObservableObject, URLSessionDelegate {
         guard err == nil, out.frameLength > 0, let ch = out.int16ChannelData else { return }
         let data = Data(bytes: ch[0], count: Int(out.frameLength) * MemoryLayout<Int16>.size)
         send(["type": "input_audio_buffer.append", "audio": data.base64EncodedString()])
+
+        // Once-a-second mic health line to the Mac: frame count proves the tap
+        // fires, peak proves real audio (all-zero peak = silent capture).
+        micFrames += Int(out.frameLength)
+        for i in 0..<Int(out.frameLength) {
+            micPeak = max(micPeak, abs(Float(ch[0][i]) / 32768.0))
+        }
     }
 
     private func schedulePlayback(_ pcm: Data) {
@@ -241,9 +298,21 @@ final class RealtimeWSClient: NSObject, ObservableObject, URLSessionDelegate {
 
     private func post(_ who: String, _ text: String) {
         guard !text.isEmpty else { return }
+        remoteLog("[\(who)] \(text)")
         DispatchQueue.main.async {
             self.lines.append(Line(who: who, text: text))
             if self.lines.count > 200 { self.lines.removeFirst(self.lines.count - 200) }
         }
+    }
+
+    /// Fire-and-forget diagnostics to serve.py's /log — the Mac's terminal is
+    /// the debugger, the human never reads the phone screen.
+    private func remoteLog(_ msg: String) {
+        guard let serverURL else { return }
+        var req = URLRequest(url: serverURL.appendingPathComponent("log"))
+        req.httpMethod = "POST"
+        req.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        req.httpBody = try? JSONSerialization.data(withJSONObject: ["msg": msg])
+        urlSession.dataTask(with: req).resume()
     }
 }

@@ -1,0 +1,7 @@
+[device 192.168.68.76] start: native mode, server https://192.168.68.60:8444
+[device 192.168.68.76] mic permission: granted
+[device 192.168.68.76] token minted ok
+[device 192.168.68.76] route: in [MicrophoneBuiltIn:iPhone Microphone] out [Speaker:Speaker]
+[device 192.168.68.76] engine started, mic format 48000.0Hz x1
+[device 192.168.68.76] first event: session.created
+[device 192.168.68.76] hb: state listening, mic 0 frames since last, peak 0.000

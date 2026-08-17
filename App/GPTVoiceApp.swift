@@ -31,8 +31,11 @@ enum AudioSessionConfigurator {
     static func apply() {
         let session = AVAudioSession.sharedInstance()
         do {
+            // No .allowBluetooth: the deliverable is the BUILT-IN speaker/mic
+            // loop test, and a paired BT device (AirPods in a pocket, a car)
+            // silently steals the mic route — captured audio is pure silence.
             try session.setCategory(.playAndRecord, mode: .voiceChat,
-                                    options: [.defaultToSpeaker, .allowBluetooth])
+                                    options: [.defaultToSpeaker])
             try session.setActive(true)
         } catch {
             print("audio session config failed: \(error)")
